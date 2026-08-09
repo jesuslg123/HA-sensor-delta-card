@@ -45,16 +45,45 @@ Sensor Delta Card is designed for temperature, humidity, pressure, CO₂ and oth
 
 ### HACS — custom repository
 
-Until the card is included in the default HACS catalog:
+The easiest installation method is through HACS. If HACS is not installed yet, follow the [HACS installation guide](https://www.hacs.xyz/docs/use/download/download/).
+
+#### Open directly in HACS
+
+[![Open your Home Assistant instance and add this repository in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jesuslg123&repository=HA-sensor-delta-card&category=plugin)
+
+Select the button, choose your Home Assistant instance, and HACS will open this repository. Then select **Download** and confirm the latest version.
+
+If the button does not work for your setup, add the repository manually:
+
+#### Add the repository manually
 
 1. Open **HACS** in Home Assistant.
-2. Open the three-dot menu and choose **Custom repositories**.
-3. Enter this repository's GitHub URL.
-4. Select **Dashboard** as the repository type.
-5. Add the repository and install **Sensor Delta Card**.
-6. Reload the Home Assistant frontend if requested.
+2. Open the three-dot menu in the top-right corner and select **Custom repositories** (or **Add custom repositories**).
+3. Paste this URL into **Repository**:
 
-HACS should manage the Lovelace resource automatically.
+   ```text
+   https://github.com/jesuslg123/HA-sensor-delta-card
+   ```
+
+4. Select **Dashboard** as the **Type**.
+5. Select **Add**.
+
+#### Download the card
+
+1. Search HACS for **Sensor Delta Card** and open it.
+2. Select **Download** in the bottom-right corner.
+3. Keep the latest version selected and confirm **Download**.
+4. When the download finishes, refresh Home Assistant. A hard refresh may be needed:
+   - macOS: **Command + Shift + R**
+   - Windows/Linux: **Ctrl + Shift + R**
+
+HACS normally registers the dashboard resource automatically. You can then edit a dashboard and select **Add card → Sensor Delta**.
+
+#### Updating through HACS
+
+When HACS shows an available update, open **Sensor Delta Card**, select **Update** or **Redownload**, and refresh Home Assistant after it finishes. To check immediately, use the repository's three-dot menu and select **Update information**.
+
+For more detail, see the official HACS guides for [custom repositories](https://www.hacs.xyz/docs/faq/custom_repositories/) and [downloading dashboard repositories](https://www.hacs.xyz/docs/use/repositories/dashboard/).
 
 ### Manual installation
 
