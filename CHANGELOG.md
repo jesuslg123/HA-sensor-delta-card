@@ -2,6 +2,11 @@
 
 All notable changes to Sensor Delta Card are documented here.
 
+## 0.6 — 2026-08-09
+
+### Documentation
+- Added screenshots of dashboard cards, the visual editor, value history and delta history.
+
 ## 0.5.9 — 2026-08-09
 
 ### Release candidate

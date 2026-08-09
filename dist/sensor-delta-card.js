@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.5.9";
+const CARD_VERSION = "0.6";
 
 const SENSOR_DELTA_I18N = {
   en: {

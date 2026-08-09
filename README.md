@@ -4,7 +4,7 @@ A Home Assistant dashboard card for seeing a numeric sensor's **current value an
 
 Sensor Delta Card is designed for temperature, humidity, pressure, CO₂ and other numeric `sensor.*` entities. The compact card shows the current value and the delta against a selected comparison period. Clicking the card opens a detailed view with Home Assistant's native history graph, a delta-history view, and summary deltas for 24 h, 48 h, 72 h and 7 days.
 
-> **Release:** v0.5.9
+> **Release:** v0.6
 
 ## Features
 
@@ -25,26 +25,21 @@ Sensor Delta Card is designed for temperature, humidity, pressure, CO₂ and oth
 
 ## Screenshots
 
-Add screenshots before submitting the repository for inclusion in HACS defaults. HACS checks that plugin READMEs contain images.
+### Dashboard cards
 
-Suggested repository layout:
+![Sensor Delta Card showing temperature and humidity changes](images/cards.png)
 
-```text
-images/
-  card.png
-  details-values.png
-  details-delta.png
-  editor.png
-```
+### Visual editor
 
-Then replace this section with, for example:
+![Sensor Delta Card visual editor with live preview](images/editor.png)
 
-```markdown
-![Sensor Delta Card](images/card.png)
-![Card editor](images/editor.png)
-![Value history](images/details-values.png)
-![Delta history](images/details-delta.png)
-```
+### Value history
+
+![Detailed view showing the sensor's 24-hour value history](images/details-values.png)
+
+### Delta history
+
+![Detailed view showing the sensor's 24-hour delta history](images/details-delta.png)
 
 ## Installation
 
@@ -79,7 +74,7 @@ HACS should manage the Lovelace resource automatically.
    as a **JavaScript Module**.
 4. Reload the frontend.
 
-For development, a cache-busting resource such as `/local/sensor-delta-card.js?v=0.5.9` can be useful.
+For development, a cache-busting resource such as `/local/sensor-delta-card.js?v=0.6` can be useful.
 
 ## Adding a card
 
@@ -181,7 +176,7 @@ If an update appears not to load, perform a hard refresh. On Edge/Chrome for mac
 The browser console prints the loaded version:
 
 ```text
-SENSOR-DELTA-CARD v0.5.9
+SENSOR-DELTA-CARD v0.6
 ```
 
 If the history is empty, verify that the selected entity has Recorder history for the required period.
@@ -224,10 +219,9 @@ Then users can add it as a custom HACS **Dashboard** repository.
 
 For submission to the default HACS catalog, also:
 
-1. Add real screenshots to the README.
-2. Ensure the HACS validation workflow passes.
-3. Publish a **GitHub Release** (a tag alone is not sufficient for the default catalog submission).
-4. Submit the repository to the plugin list in `hacs/default`.
+1. Ensure the HACS validation workflow passes.
+2. Publish a **GitHub Release** (a tag alone is not sufficient for the default catalog submission).
+3. Submit the repository to the plugin list in `hacs/default`.
 
 ## Release process
 
