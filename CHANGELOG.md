@@ -2,6 +2,11 @@
 
 All notable changes to Sensor Delta Card are documented here.
 
+## 0.6.1 — 2026-08-09
+
+### Added
+- The detail popup now shows the entity's last update below the current value using Home Assistant's native localized timestamp display.
+
 ## 0.6 — 2026-08-09
 
 ### Documentation

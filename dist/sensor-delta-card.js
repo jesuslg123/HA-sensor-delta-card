@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.6";
+const CARD_VERSION = "0.6.1";
 
 const SENSOR_DELTA_I18N = {
   en: {
@@ -426,7 +426,9 @@ class SensorDeltaDialog {
         .head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
         .title{font-size:20px;font-weight:600}
         button{border:0;background:transparent;color:inherit;font-size:28px;cursor:pointer}
-        .now{font-size:30px;margin:14px 0 4px}
+        .now-block{margin:14px 0 4px}
+        .now{font-size:30px;line-height:1}
+        .last-update{display:block;font-size:12px;line-height:1.2;color:var(--secondary-text-color);margin-top:2px}
         .lab{opacity:.65;font-size:13px}
         .graph-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
         .segmented{display:inline-flex;padding:3px;border-radius:10px;background:var(--secondary-background-color,rgba(127,127,127,.10));gap:2px}
@@ -448,7 +450,10 @@ class SensorDeltaDialog {
           <div class="title" id="dialog-title"></div>
           <button type="button" data-dialog-close aria-label="${sdTr(hass,"close")}">×</button>
         </div>
-        <div class="now" id="dialog-now"></div>
+        <div class="now-block">
+          <div class="now" id="dialog-now"></div>
+          <state-display class="last-update" id="dialog-last-updated" timestamp-tooltip></state-display>
+        </div>
         <div class="graph-head">
           <div class="lab" id="graph-label">${sdTr(hass,"history24")}</div>
           <div class="segmented" role="group" aria-label="Tipo de gráfica">
@@ -476,8 +481,15 @@ class SensorDeltaDialog {
 
     const titleEl = overlay.querySelector("#dialog-title");
     const nowEl = overlay.querySelector("#dialog-now");
+    const lastUpdatedEl = overlay.querySelector("#dialog-last-updated");
     if (titleEl) titleEl.textContent = name;
     if (nowEl) nowEl.textContent = `${fmt(now)} ${unit}`;
+    if (lastUpdatedEl) {
+      lastUpdatedEl.hass = hass;
+      lastUpdatedEl.stateObj = state;
+      lastUpdatedEl.content = "last-updated";
+      lastUpdatedEl.timestampTooltip = true;
+    }
 
     const close = () => overlay.remove();
     const closeButton = overlay.querySelector("[data-dialog-close]");
