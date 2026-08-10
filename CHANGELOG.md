@@ -2,6 +2,13 @@
 
 All notable changes to Sensor Delta Card are documented here.
 
+## 0.6.2 — 2026-08-10
+
+### Fixed
+- Historical comparisons now use the last known value at or before the target time instead of a potentially future, nearer reading.
+- Compact-card deltas, detail summaries and the delta chart now share the same historical lookup semantics.
+- Comparisons with insufficient retained history now show no delta instead of reusing the oldest available reading.
+
 ## 0.6.1 — 2026-08-09
 
 ### Added

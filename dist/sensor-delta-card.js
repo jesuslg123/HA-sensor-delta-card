@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.6.1";
+const CARD_VERSION = "0.6.2";
 
 const SENSOR_DELTA_I18N = {
   en: {
@@ -28,6 +28,35 @@ function sdTr(hass,key,...args){
 }
 function sdPeriod(hass,h){
   return h===168?sdTr(hass,"d7"):sdTr(hass,`h${h}`);
+}
+
+function sdHistoryValues(rows){
+  return (rows || []).map(row => ({
+    t: Date.parse(row.last_changed || row.last_updated),
+    v: Number(row.state)
+  }))
+    .filter(item => Number.isFinite(item.t) && Number.isFinite(item.v))
+    .sort((a, b) => a.t - b.t);
+}
+
+function sdValueAtTime(values,target){
+  if (!values.length || !Number.isFinite(target)) return null;
+
+  let lo = 0;
+  let hi = values.length - 1;
+  let idx = -1;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (values[mid].t <= target) {
+      idx = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+
+  return idx >= 0 ? values[idx].v : null;
 }
 
 
@@ -155,17 +184,8 @@ class SensorDeltaCard extends HTMLElement {
   }
 
   _valueAt(hoursAgo) {
-    const rows = this._cache?.rows || [];
     const target = Date.now() - hoursAgo * 3600 * 1000;
-    let best = null, bestDist = Infinity;
-    for (const row of rows) {
-      const t = Date.parse(row.last_changed || row.last_updated);
-      const v = this._num(row.state);
-      if (!Number.isFinite(t) || v === null) continue;
-      const d = Math.abs(t - target);
-      if (d < bestDist) { bestDist = d; best = v; }
-    }
-    return best;
+    return sdValueAtTime(sdHistoryValues(this._cache?.rows), target);
   }
 
   _fmt(value, decimals = 1) {
@@ -505,21 +525,11 @@ class SensorDeltaDialog {
     const state = hass.states[entity];
     const unit = state?.attributes?.unit_of_measurement || "";
     const now = Number(state?.state);
-    const vals = rows.map(r => ({
-      t: Date.parse(r.last_changed || r.last_updated),
-      v: Number(r.state)
-    }))
-      .filter(x => Number.isFinite(x.t) && Number.isFinite(x.v))
-      .sort((a, b) => a.t - b.t);
+    const vals = sdHistoryValues(rows);
 
     const valueAt = h => {
       const target = Date.now() - h * 3600000;
-      let best = null, dist = Infinity;
-      vals.forEach(x => {
-        const d = Math.abs(x.t - target);
-        if (d < dist) { dist = d; best = x.v; }
-      });
-      return best;
+      return sdValueAtTime(vals, target);
     };
 
     const fmt = n => Number.isFinite(n)
@@ -583,23 +593,7 @@ class SensorDeltaDialog {
     };
 
     const valueAtTime = target => {
-      if (!vals.length) return null;
-
-      let lo = 0;
-      let hi = vals.length - 1;
-      let idx = -1;
-
-      while (lo <= hi) {
-        const mid = (lo + hi) >> 1;
-        if (vals[mid].t <= target) {
-          idx = mid;
-          lo = mid + 1;
-        } else {
-          hi = mid - 1;
-        }
-      }
-
-      return idx >= 0 ? vals[idx].v : vals[0].v;
+      return sdValueAtTime(vals, target);
     };
 
     const buildDeltaStates = hours => {
