@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.6.2";
+const CARD_VERSION = "0.6.3";
 
 const SENSOR_DELTA_I18N = {
   en: {
@@ -8,7 +8,7 @@ const SENSOR_DELTA_I18N = {
     differenceCurrent:"Difference from current value", loadingHistory:"Loading history…",
     noHistory:"Could not load history.", noGraph:"Could not load graph.",
     noNativeGraph:"Could not load Home Assistant native graph.", insufficientDelta:"Not enough data to calculate delta.",
-    close:"Close", deltaVs:p=>`Δ vs ${p} · last 24 hours`
+    close:"Close", showMore:"Show more", deltaVs:p=>`Δ vs ${p} · last 24 hours`
   },
   es: {
     compareWith:"Comparar con",
@@ -17,7 +17,7 @@ const SENSOR_DELTA_I18N = {
     differenceCurrent:"Diferencia respecto al valor actual", loadingHistory:"Cargando histórico…",
     noHistory:"No se pudo cargar el histórico.", noGraph:"No se pudo cargar la gráfica.",
     noNativeGraph:"No se pudo cargar la gráfica nativa de Home Assistant.", insufficientDelta:"No hay suficientes datos para calcular el delta.",
-    close:"Cerrar", deltaVs:p=>`Δ respecto a ${p} · últimas 24 horas`
+    close:"Cerrar", showMore:"Mostrar más", deltaVs:p=>`Δ respecto a ${p} · últimas 24 horas`
   }
 };
 function sdTr(hass,key,...args){
@@ -28,6 +28,20 @@ function sdTr(hass,key,...args){
 }
 function sdPeriod(hass,h){
   return h===168?sdTr(hass,"d7"):sdTr(hass,`h${h}`);
+}
+
+function sdEscape(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+  }[character]));
+}
+
+function sdHistoryHref(entity, now = new Date()) {
+  const start = new Date(now);
+  start.setDate(start.getDate() - 1);
+  start.setHours(0, 0, 0, 0);
+  return `/history?entity_id=${encodeURIComponent(entity)}` +
+    `&start_date=${encodeURIComponent(start.toISOString())}&back=1`;
 }
 
 function sdHistoryValues(rows){
@@ -282,7 +296,7 @@ class SensorDeltaCard extends HTMLElement {
   }
 
   _escape(s) {
-    return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    return sdEscape(s);
   }
 }
 if (!customElements.get("sensor-delta-card")) customElements.define("sensor-delta-card", SensorDeltaCard);
@@ -423,6 +437,8 @@ class SensorDeltaDialog {
     const unit = state?.attributes?.unit_of_measurement || "";
     const now = Number(state?.state);
     const name = state?.attributes?.friendly_name || entity;
+    const showMore = hass.localize?.("ui.dialogs.more_info_control.show_more") || sdTr(hass,"showMore");
+    const showMoreHref = sdHistoryHref(entity);
     const fmt = n => Number.isFinite(n)
       ? new Intl.NumberFormat(hass.locale?.language || undefined, {
           maximumFractionDigits: 1, minimumFractionDigits: 1
@@ -450,7 +466,9 @@ class SensorDeltaDialog {
         .now{font-size:30px;line-height:1}
         .last-update{display:block;font-size:12px;line-height:1.2;color:var(--secondary-text-color);margin-top:2px}
         .lab{opacity:.65;font-size:13px}
-        .graph-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+        .history-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+        .show-more{color:var(--primary-color);font-size:14px;white-space:nowrap}
+        .graph-controls{display:flex;justify-content:flex-end;margin-top:8px}
         .segmented{display:inline-flex;padding:3px;border-radius:10px;background:var(--secondary-background-color,rgba(127,127,127,.10));gap:2px}
         .segmented button{font-size:13px;line-height:1;border:0;border-radius:8px;padding:8px 12px;cursor:pointer;color:var(--primary-text-color);background:transparent}
         .segmented button.active{background:var(--card-background-color,#fff);box-shadow:0 1px 4px rgba(0,0,0,.18);font-weight:600}
@@ -474,8 +492,11 @@ class SensorDeltaDialog {
           <div class="now" id="dialog-now"></div>
           <state-display class="last-update" id="dialog-last-updated" timestamp-tooltip></state-display>
         </div>
-        <div class="graph-head">
+        <div class="history-head">
           <div class="lab" id="graph-label">${sdTr(hass,"history24")}</div>
+          <a class="show-more" href="${showMoreHref}">${sdEscape(showMore)}</a>
+        </div>
+        <div class="graph-controls">
           <div class="segmented" role="group" aria-label="Tipo de gráfica">
             <button type="button" class="active" data-graph-mode="values">${sdTr(hass,"values")}</button>
             <button type="button" data-graph-mode="delta">${sdTr(hass,"delta")}</button>

@@ -2,6 +2,11 @@
 
 All notable changes to Sensor Delta Card are documented here.
 
+## 0.6.3 — 2026-08-14
+
+### Added
+- The detail view now includes Home Assistant's native localized **Show more** link, opening the full History page for the selected entity.
+
 ## 0.6.2 — 2026-08-10
 
 ### Fixed

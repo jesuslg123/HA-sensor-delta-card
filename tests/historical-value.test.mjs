@@ -14,6 +14,7 @@ vm.runInContext(source, context);
 
 const historyValues = rows => vm.runInContext("sdHistoryValues", context)(rows);
 const valueAtTime = (values, target) => vm.runInContext("sdValueAtTime", context)(values, target);
+const historyHref = (entity, now) => vm.runInContext("sdHistoryHref", context)(entity, now);
 
 test("uses the last reading at or before the target", () => {
   const values = historyValues([
@@ -51,4 +52,18 @@ test("ignores invalid states and timestamps", () => {
   assert.deepEqual(JSON.parse(JSON.stringify(values)), [
     { t: Date.parse("2026-08-09T13:00:00Z"), v: 23 }
   ]);
+});
+
+test("builds the native Home Assistant history link for the selected entity", () => {
+  const href = historyHref("sensor.outdoor temperature", new Date(2026, 7, 14, 12));
+  const url = new URL(href, "https://home-assistant.local");
+
+  assert.equal(url.pathname, "/history");
+  assert.equal(url.searchParams.get("entity_id"), "sensor.outdoor temperature");
+  assert.equal(url.searchParams.get("back"), "1");
+
+  const start = new Date(url.searchParams.get("start_date"));
+  assert.equal(start.getDate(), 13);
+  assert.equal(start.getHours(), 0);
+  assert.equal(start.getMinutes(), 0);
 });
