@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.6.3";
+const CARD_VERSION = "0.6.5";
 
 const SENSOR_DELTA_I18N = {
   en: {
@@ -8,7 +8,8 @@ const SENSOR_DELTA_I18N = {
     differenceCurrent:"Difference from current value", loadingHistory:"Loading history…",
     noHistory:"Could not load history.", noGraph:"Could not load graph.",
     noNativeGraph:"Could not load Home Assistant native graph.", insufficientDelta:"Not enough data to calculate delta.",
-    close:"Close", showMore:"Show more", deltaVs:p=>`Δ vs ${p} · last 24 hours`
+    close:"Close", showMore:"Show more", menu:"Menu", deviceInfo:"Device info",
+    related:"Related", details:"Details", deltaVs:p=>`Δ vs ${p} · last 24 hours`
   },
   es: {
     compareWith:"Comparar con",
@@ -17,7 +18,8 @@ const SENSOR_DELTA_I18N = {
     differenceCurrent:"Diferencia respecto al valor actual", loadingHistory:"Cargando histórico…",
     noHistory:"No se pudo cargar el histórico.", noGraph:"No se pudo cargar la gráfica.",
     noNativeGraph:"No se pudo cargar la gráfica nativa de Home Assistant.", insufficientDelta:"No hay suficientes datos para calcular el delta.",
-    close:"Cerrar", showMore:"Mostrar más", deltaVs:p=>`Δ respecto a ${p} · últimas 24 horas`
+    close:"Cerrar", showMore:"Mostrar más", menu:"Menú", deviceInfo:"Información del dispositivo",
+    related:"Relacionado", details:"Detalles", deltaVs:p=>`Δ respecto a ${p} · últimas 24 horas`
   }
 };
 function sdTr(hass,key,...args){
@@ -42,6 +44,10 @@ function sdHistoryHref(entity, now = new Date()) {
   start.setHours(0, 0, 0, 0);
   return `/history?entity_id=${encodeURIComponent(entity)}` +
     `&start_date=${encodeURIComponent(start.toISOString())}&back=1`;
+}
+
+function sdMoreInfoDetail(entity, view) {
+  return { entityId: entity, view };
 }
 
 function sdHistoryValues(rows){
@@ -248,19 +254,52 @@ class SensorDeltaCard extends HTMLElement {
     }
   }
 
+  _openNativeView(view) {
+    if (!this._config?.entity) return;
+    this.dispatchEvent(new CustomEvent("hass-more-info", {
+      bubbles: true,
+      composed: true,
+      detail: sdMoreInfoDetail(this._config.entity, view)
+    }));
+  }
+
+  _openDeviceInfo() {
+    const deviceId = this._hass?.entities?.[this._config?.entity]?.device_id;
+    if (!deviceId) return;
+    window.history.pushState(null, "", `/config/devices/device/${encodeURIComponent(deviceId)}`);
+    window.dispatchEvent(new CustomEvent("location-changed", {
+      detail: { replace: false }
+    }));
+  }
+
+  _menuLabel(key, fallback) {
+    return this._hass?.localize?.(`ui.dialogs.more_info_control.${key}`) || fallback;
+  }
+
   _render() {
     if (!this.isConnected || !this._config) return;
     const state = this._hass?.states?.[this._config.entity];
     const unit = state?.attributes?.unit_of_measurement || "";
     const current = this._num(state?.state);
     const hours = Number(this._config.compare_hours || 24);
+    const deviceId = this._hass?.entities?.[this._config.entity]?.device_id;
+    const menuLabel = this._hass?.localize?.("ui.common.menu") || sdTr(this._hass, "menu");
+    const deviceLabel = this._hass?.localize?.(
+      "ui.dialogs.more_info_control.device_or_service_info",
+      { type: this._hass?.localize?.("ui.dialogs.more_info_control.device_type.device") || "device" }
+    ) || sdTr(this._hass, "deviceInfo");
+    const relatedLabel = this._menuLabel("related", sdTr(this._hass, "related"));
+    const detailsLabel = this._menuLabel("details", sdTr(this._hass, "details"));
 
     this.innerHTML = `
       <style>
         ha-card { height:100%; cursor:pointer; padding:16px; box-sizing:border-box; }
-        .top { display:flex; align-items:center; gap:10px; color:var(--primary-text-color); }
+        .top { display:flex; align-items:center; gap:10px; color:var(--primary-text-color); min-width:0; }
         ha-icon { color:var(--state-icon-color, var(--primary-color)); }
-        .name { font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .name { font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+        .entity-menu { margin:-12px -12px -12px auto; flex:0 0 auto; color:var(--secondary-text-color); }
+        .entity-menu ha-icon-button { --ha-icon-button-size:40px; }
+        .entity-menu ha-icon[slot="icon"] { color:var(--secondary-text-color); }
         .body { display:flex; flex-direction:column; align-items:flex-start; margin-top:14px; gap:7px; }
         .current-line { display:flex; align-items:baseline; white-space:nowrap; }
         .current { font-size:28px; font-weight:500; line-height:1; }
@@ -273,6 +312,24 @@ class SensorDeltaCard extends HTMLElement {
         <div class="top">
           <ha-icon icon="${state?.attributes?.icon || this._defaultIcon(state)}"></ha-icon>
           <div class="name">${this._escape(this._name(state))}</div>
+          <ha-dropdown class="entity-menu" placement="bottom-end">
+            <ha-icon-button slot="trigger">
+              <ha-icon icon="mdi:dots-vertical"></ha-icon>
+            </ha-icon-button>
+            ${deviceId ? `
+              <ha-dropdown-item value="device">
+                <ha-icon slot="icon" icon="mdi:devices"></ha-icon>
+                ${this._escape(deviceLabel)}
+              </ha-dropdown-item>` : ""}
+            <ha-dropdown-item value="related">
+              <ha-icon slot="icon" icon="mdi:information-outline"></ha-icon>
+              ${this._escape(relatedLabel)}
+            </ha-dropdown-item>
+            <ha-dropdown-item value="details">
+              <ha-icon slot="icon" icon="mdi:format-list-bulleted-square"></ha-icon>
+              ${this._escape(detailsLabel)}
+            </ha-dropdown-item>
+          </ha-dropdown>
         </div>
         <div class="body">
           <div class="current-line"><span class="current">${current === null ? "—" : this._fmt(current)}</span><span class="unit">${this._escape(unit)}</span></div>
@@ -280,8 +337,24 @@ class SensorDeltaCard extends HTMLElement {
         </div>
       </ha-card>`;
     const card = this.querySelector("ha-card");
+    const menu = this.querySelector(".entity-menu");
+    const menuButton = menu?.querySelector("ha-icon-button");
+    if (menuButton) {
+      menuButton.label = menuLabel;
+      menuButton.ariaHasPopup = "menu";
+    }
+    menu?.addEventListener("click", e => e.stopPropagation());
+    menu?.addEventListener("keydown", e => e.stopPropagation());
+    menu?.addEventListener("wa-select", e => {
+      e.stopPropagation();
+      const action = e.detail?.item?.value;
+      if (action === "device") this._openDeviceInfo();
+      else if (action === "related" || action === "details") this._openNativeView(action);
+    });
     card?.addEventListener("click", () => this._openDetails());
-    card?.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") this._openDetails(); });
+    card?.addEventListener("keydown", e => {
+      if (e.target === card && (e.key === "Enter" || e.key === " ")) this._openDetails();
+    });
   }
 
   _defaultIcon(state) {
@@ -451,16 +524,19 @@ class SensorDeltaDialog {
       <style>
         #sensor-delta-dialog-overlay{
           position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);
-          display:grid;place-items:center;padding:16px
+          display:grid;place-items:center;padding:16px;box-sizing:border-box
         }
         .dlg{
-          width:min(920px,100%);max-height:92vh;overflow:auto;
+          width:min(920px,100%);max-height:min(92vh,100%);overflow:hidden;
+          display:flex;flex-direction:column;min-height:0;
           background:var(--card-background-color,#fff);color:var(--primary-text-color,#111);
           border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.3);
-          padding:20px;box-sizing:border-box
+          box-sizing:border-box
         }
-        .head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-        .title{font-size:20px;font-weight:600}
+        .head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex:0 0 auto;padding:16px 20px}
+        .title{font-size:20px;font-weight:600;min-width:0;overflow-wrap:anywhere}
+        .head button{flex:0 0 auto;min-width:44px;min-height:44px}
+        .dialog-content{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 20px 20px}
         button{border:0;background:transparent;color:inherit;font-size:28px;cursor:pointer}
         .now-block{margin:14px 0 4px}
         .now{font-size:30px;line-height:1}
@@ -483,11 +559,12 @@ class SensorDeltaDialog {
         .val{font-size:18px;margin-top:3px}
         .hidden{display:none}
       </style>
-      <div class="dlg" role="dialog" aria-modal="true">
+      <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
         <div class="head">
           <div class="title" id="dialog-title"></div>
           <button type="button" data-dialog-close aria-label="${sdTr(hass,"close")}">×</button>
         </div>
+        <div class="dialog-content">
         <div class="now-block">
           <div class="now" id="dialog-now"></div>
           <state-display class="last-update" id="dialog-last-updated" timestamp-tooltip></state-display>
@@ -513,6 +590,7 @@ class SensorDeltaDialog {
               <div class="lab">${sdPeriod(hass,h)}</div>
               <div class="val" data-delta-hours="${h}">—</div>
             </div>`).join("")}
+        </div>
         </div>
       </div>`;
 

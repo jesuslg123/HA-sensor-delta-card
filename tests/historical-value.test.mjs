@@ -15,6 +15,7 @@ vm.runInContext(source, context);
 const historyValues = rows => vm.runInContext("sdHistoryValues", context)(rows);
 const valueAtTime = (values, target) => vm.runInContext("sdValueAtTime", context)(values, target);
 const historyHref = (entity, now) => vm.runInContext("sdHistoryHref", context)(entity, now);
+const moreInfoDetail = (entity, view) => vm.runInContext("sdMoreInfoDetail", context)(entity, view);
 
 test("uses the last reading at or before the target", () => {
   const values = historyValues([
@@ -66,4 +67,15 @@ test("builds the native Home Assistant history link for the selected entity", ()
   assert.equal(start.getDate(), 13);
   assert.equal(start.getHours(), 0);
   assert.equal(start.getMinutes(), 0);
+});
+
+test("builds native Home Assistant more-info requests for entity subviews", () => {
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(moreInfoDetail("sensor.outdoor_temperature", "related"))),
+    { entityId: "sensor.outdoor_temperature", view: "related" }
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(moreInfoDetail("sensor.outdoor_temperature", "details"))),
+    { entityId: "sensor.outdoor_temperature", view: "details" }
+  );
 });

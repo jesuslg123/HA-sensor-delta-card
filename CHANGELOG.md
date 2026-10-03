@@ -2,6 +2,17 @@
 
 All notable changes to Sensor Delta Card are documented here.
 
+## 0.6.5 — 2026-10-03
+
+### Fixed
+- Keep the detail dialog title and close button visible while its history and comparisons scroll.
+
+## 0.6.4 — 2026-08-18
+
+### Added
+- Added Home Assistant's native top-right overflow menu to each card.
+- The menu links the selected entity to **Device info** (when a device is available), **Related**, and **Details** using native Home Assistant views and components.
+
 ## 0.6.3 — 2026-08-14
 
 ### Added

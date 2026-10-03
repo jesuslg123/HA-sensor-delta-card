@@ -4,7 +4,7 @@ A Home Assistant dashboard card for seeing a numeric sensor's **current value an
 
 Sensor Delta Card is designed for temperature, humidity, pressure, CO₂ and other numeric `sensor.*` entities. The compact card shows the current value and the delta against a selected comparison period. Clicking the card opens a detailed view with Home Assistant's native history graph, a delta-history view, and summary deltas for 24 h, 48 h, 72 h and 7 days.
 
-> **Release:** v0.6.3
+> **Release:** v0.6.5
 
 ## Features
 
@@ -13,6 +13,7 @@ Sensor Delta Card is designed for temperature, humidity, pressure, CO₂ and oth
 - Comparison periods: **24 h, 48 h, 72 h, or 7 days**.
 - Optional custom card title.
 - Compact current value + delta display.
+- Native entity overflow menu for **Device info**, **Related**, and **Details**.
 - Detail popup with:
   - native localized last-update time below the current value;
   - native Home Assistant 24-hour value history;
@@ -105,7 +106,7 @@ For more detail, see the official HACS guides for [custom repositories](https://
    as a **JavaScript Module**.
 4. Reload the frontend.
 
-For development, a cache-busting resource such as `/local/sensor-delta-card.js?v=0.6.3` can be useful.
+For development, a cache-busting resource such as `/local/sensor-delta-card.js?v=0.6.5` can be useful.
 
 ## Adding a card
 
@@ -209,7 +210,7 @@ If an update appears not to load, perform a hard refresh. On Edge/Chrome for mac
 The browser console prints the loaded version:
 
 ```text
-SENSOR-DELTA-CARD v0.6.3
+SENSOR-DELTA-CARD v0.6.5
 ```
 
 If the history is empty, verify that the selected entity has Recorder history for the required period.
